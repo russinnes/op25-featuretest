@@ -26,6 +26,11 @@ import json
 sys.path.append('tdma')
 import lfsr
 
+# TESTING - SEND TSBK OVER UDP, STAY LOCKED ON C/C
+import socket
+TSBK_HOST = '192.168.1.4'
+TSBK_PORT = 3339
+
 def utf_ascii(ustr):
     return (ustr.decode("utf-8")).encode("ascii", "ignore")
 
@@ -352,6 +357,12 @@ class trunked_system (object):
         updated = 0
         tsbk = tsbk << 16	# for missing crc
         opcode = (tsbk >> 88) & 0x3f
+	
+        # SEND TSBK OVER UDP AND RETURN, KEEPING SDR ON C/C
+	self.tsbk_socket.sendto('%02x %024x' % (opcode, tsbk),(TSBK_HOST, TSBK_PORT))
+        return updated
+        #
+
         if self.debug > 10:
             sys.stderr.write('TSBK: 0x%02x 0x%024x\n' % (opcode, tsbk))
         if opcode == 0x00:   # group voice chan grant
